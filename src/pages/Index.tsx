@@ -73,37 +73,27 @@ const Index = () => {
     };
   }, []);
 
-  // Analyze last 4 velas and generate prediction
+  // Analyze velas and generate prediction - always predict unless low vela detected
   const analyzePattern = useCallback(() => {
-    if (velas.length < 4) return null;
+    if (velas.length < 2) return null;
 
-    const lastFour = velas.slice(0, 4);
-    const avg = lastFour.reduce((a, b) => a + b, 0) / lastFour.length;
-    const lowCount = lastFour.filter(v => v < 2).length;
-
-    // Pattern: if most velas are low, predict a higher one coming
-    if (lowCount >= 3 && avg < 1.8) {
-      const tirar = (1.8 + Math.random() * 0.4).toFixed(2);
-      return {
-        depoisDe: `${lastFour[0].toFixed(2)}x`,
-        tirarNo: `${tirar}x`,
-        tentativas: 3,
-        targetMultiplier: parseFloat(tirar),
-      };
+    const lastVela = velas[0];
+    
+    // Don't predict right after a very low vela (below 1.00x or 1.59x) - wait for next
+    if (lastVela < 1.59) {
+      return null;
     }
 
-    // Pattern: sequence of medium velas
-    if (avg >= 1.5 && avg < 3) {
-      const tirar = (1.5 + Math.random() * 0.3).toFixed(2);
-      return {
-        depoisDe: `${lastFour[0].toFixed(2)}x`,
-        tirarNo: `${tirar}x`,
-        tentativas: 2,
-        targetMultiplier: parseFloat(tirar),
-      };
-    }
-
-    return null;
+    // Always generate a prediction
+    const tirar = (1.5 + Math.random() * 0.7).toFixed(2);
+    const tentativas = lastVela >= 2 ? 2 : 3;
+    
+    return {
+      depoisDe: `${lastVela.toFixed(2)}x`,
+      tirarNo: `${tirar}x`,
+      tentativas,
+      targetMultiplier: parseFloat(tirar),
+    };
   }, [velas]);
 
   // Check for pause condition (3+ consecutive losts) and resume (purple vela 2.50x+ OR pink vela 10x+)
@@ -184,9 +174,9 @@ const Index = () => {
     }
   }, [velas, pendingSignal, playGreenSound, playLostSound]);
 
-  // Generate new signal when none active (with processing state)
+  // Generate new signal when none active (faster processing)
   useEffect(() => {
-    if (pendingSignal || activeSignal || velas.length < 4 || isPaused) {
+    if (pendingSignal || activeSignal || velas.length < 2 || isPaused) {
       if (!pendingSignal && !activeSignal && !isPaused) {
         setIsProcessing(true);
       }
@@ -196,7 +186,7 @@ const Index = () => {
     // Start processing
     setIsProcessing(true);
     
-    // Simulate analysis time
+    // Fast analysis - only 800ms delay
     const timer = setTimeout(() => {
       const newSignal = analyzePattern();
       if (newSignal) {
@@ -214,8 +204,11 @@ const Index = () => {
           attemptCount: newSignal.tentativas,
         });
         setIsProcessing(false);
+      } else {
+        // If no signal generated (low vela), keep processing state
+        setIsProcessing(true);
       }
-    }, 2500);
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [velas, activeSignal, pendingSignal, isPaused, analyzePattern]);

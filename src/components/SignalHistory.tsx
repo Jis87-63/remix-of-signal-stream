@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 interface HistoryItem {
   id: number;
   result: 'green' | 'lost';
@@ -9,12 +11,6 @@ interface SignalHistoryProps {
   history: HistoryItem[];
 }
 
-const getVelaColor = (value: number): string => {
-  if (value >= 10) return 'text-vela-pink';
-  if (value >= 2) return 'text-vela-purple';
-  return 'text-vela-blue';
-};
-
 const getVelaBgColor = (value: number): string => {
   if (value >= 10) return 'bg-vela-pink';
   if (value >= 2) return 'bg-vela-purple';
@@ -22,9 +18,21 @@ const getVelaBgColor = (value: number): string => {
 };
 
 const SignalHistory = ({ history }: SignalHistoryProps) => {
+  const [newItemId, setNewItemId] = useState<number | null>(null);
+  
   const greens = history.filter(h => h.result === 'green').length;
   const losts = history.filter(h => h.result === 'lost').length;
   const rate = history.length > 0 ? ((greens / history.length) * 100).toFixed(0) : '0';
+
+  // Trigger pulse animation when new item is added
+  useEffect(() => {
+    if (history.length > 0) {
+      const latestId = history[0].id;
+      setNewItemId(latestId);
+      const timer = setTimeout(() => setNewItemId(null), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [history.length, history[0]?.id]);
 
   return (
     <div className="bg-[#1a1a2e] rounded-xl border border-[#0d0d15] p-4">
@@ -36,7 +44,9 @@ const SignalHistory = ({ history }: SignalHistoryProps) => {
           history.slice(0, 30).map((item) => (
             <div
               key={item.id}
-              className={`w-7 h-7 rounded-full flex items-center justify-center ${getVelaBgColor(item.multiplier)}`}
+              className={`w-7 h-7 rounded-full flex items-center justify-center ${getVelaBgColor(item.multiplier)} ${
+                item.id === newItemId ? 'animate-[pulse_0.5s_ease-in-out_2]' : ''
+              }`}
               title={`Alvo: ${item.predictedTarget.toFixed(2)}x | Resultado: ${item.multiplier.toFixed(2)}x`}
             >
               <span className="text-[10px] font-bold text-white">
