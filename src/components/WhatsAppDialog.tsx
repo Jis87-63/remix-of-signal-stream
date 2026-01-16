@@ -18,15 +18,15 @@ const WhatsAppDialog = ({ isOpen, onClose }: WhatsAppDialogProps) => {
           <X className="w-6 h-6" />
         </button>
         
-        <h2 className="text-2xl font-bold text-primary italic mb-4">
-          GRUPO OFICIAL<br />WHATSAPP
+        <h2 className="text-2xl font-extrabold text-primary uppercase tracking-wide mb-4">
+          Grupo Oficial<br />WhatsApp
         </h2>
         
-        <p className="text-foreground mb-4">
-          Entre agora no grupo de WhatsApp e tenha acesso a dicas exclusivas, outros bots 100% assertivos e suporte 24/24 para tirar todas as suas dúvidas.
+        <p className="text-foreground text-sm leading-relaxed mb-4">
+          Entre agora no grupo de WhatsApp e tenha acesso a <span className="text-primary font-semibold">dicas exclusivas</span>, outros bots <span className="text-primary font-semibold">100% assertivos</span> e suporte 24/24 para tirar todas as suas dúvidas.
         </p>
         
-        <p className="text-muted-foreground mb-6">
+        <p className="text-muted-foreground text-xs mb-6">
           No grupo você encontra tudo o que precisa para ganhar no Aviator todos os dias com segurança.
         </p>
         
@@ -34,9 +34,9 @@ const WhatsAppDialog = ({ isOpen, onClose }: WhatsAppDialogProps) => {
           href="https://chat.whatsapp.com/LfPy4mku4rT74B3PRfGhj3"
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full py-4 bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-lg rounded-xl transition-colors"
+          className="block w-full py-4 bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-lg rounded-xl transition-colors uppercase tracking-wider"
         >
-          ENTRAR NO GRUPO AGORA
+          Entrar no Grupo Agora
         </a>
       </div>
     </div>
