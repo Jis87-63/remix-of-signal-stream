@@ -25,7 +25,7 @@ interface PendingSignal {
 
 const Index = () => {
   const { velas, isLoading } = useVelas();
-  const { playGreenSound, playLostSound } = useNotificationSound();
+  const { playGreenSound, playLostSound, playHighVelaSound } = useNotificationSound();
   const [onlineCount, setOnlineCount] = useState(187);
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -37,11 +37,9 @@ const Index = () => {
     targetMultiplier: number;
   } | null>(null);
   const [pendingSignal, setPendingSignal] = useState<PendingSignal | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
   
   const lastVelaRef = useRef<number | null>(null);
   const historyIdRef = useRef(0);
-  const consecutiveLostsRef = useRef(0);
 
   // Simulate random online count changes (100-200 range)
   useEffect(() => {
@@ -73,17 +71,12 @@ const Index = () => {
     };
   }, []);
 
-  // Analyze velas and generate prediction - always predict unless low vela detected
+  // Analyze velas and generate prediction - always predict
   const analyzePattern = useCallback(() => {
     if (velas.length < 2) return null;
 
     const lastVela = velas[0];
     
-    // Don't predict right after a very low vela (below 1.00x or 1.59x) - wait for next
-    if (lastVela < 1.59) {
-      return null;
-    }
-
     // Always generate a prediction
     const tirar = (1.5 + Math.random() * 0.7).toFixed(2);
     const tentativas = lastVela >= 2 ? 2 : 3;
@@ -95,26 +88,6 @@ const Index = () => {
       targetMultiplier: parseFloat(tirar),
     };
   }, [velas]);
-
-  // Check for pause condition (3+ consecutive losts) and resume (purple vela 2.50x+ OR pink vela 10x+)
-  useEffect(() => {
-    if (velas.length === 0) return;
-    
-    const currentVela = velas[0];
-    if (lastVelaRef.current === currentVela) return;
-
-    // Check if we should resume after pause (purple vela 2.50x+ or pink vela 10x+)
-    if (isPaused && (currentVela >= 2.5 || currentVela >= 10)) {
-      setIsPaused(false);
-      consecutiveLostsRef.current = 0;
-    }
-    
-    // If pink vela (10x+) appears, force resume and predict next
-    if (currentVela >= 10 && isPaused) {
-      setIsPaused(false);
-      consecutiveLostsRef.current = 0;
-    }
-  }, [velas, isPaused]);
 
   // Handle signal confirmation - only confirm when NEXT vela arrives after prediction
   useEffect(() => {
@@ -137,8 +110,13 @@ const Index = () => {
       }, ...prev].slice(0, 50));
       setPendingSignal(null);
       setActiveSignal(null);
-      consecutiveLostsRef.current = 0;
-      playGreenSound();
+      
+      // Play special sound for high velas (10x+)
+      if (currentVela >= 10) {
+        playHighVelaSound();
+      } else {
+        playGreenSound();
+      }
     } else {
       // Decrement attempts
       const newAttempts = pendingSignal.attemptCount - 1;
@@ -154,12 +132,6 @@ const Index = () => {
         setPendingSignal(null);
         setActiveSignal(null);
         playLostSound();
-        
-        // Track consecutive losses
-        consecutiveLostsRef.current++;
-        if (consecutiveLostsRef.current >= 3) {
-          setIsPaused(true);
-        }
       } else {
         // Still has attempts left
         setPendingSignal({
@@ -172,12 +144,12 @@ const Index = () => {
         } : null);
       }
     }
-  }, [velas, pendingSignal, playGreenSound, playLostSound]);
+  }, [velas, pendingSignal, playGreenSound, playLostSound, playHighVelaSound]);
 
   // Generate new signal when none active (faster processing)
   useEffect(() => {
-    if (pendingSignal || activeSignal || velas.length < 2 || isPaused) {
-      if (!pendingSignal && !activeSignal && !isPaused) {
+    if (pendingSignal || activeSignal || velas.length < 2) {
+      if (!pendingSignal && !activeSignal) {
         setIsProcessing(true);
       }
       return;
@@ -204,14 +176,11 @@ const Index = () => {
           attemptCount: newSignal.tentativas,
         });
         setIsProcessing(false);
-      } else {
-        // If no signal generated (low vela), keep processing state
-        setIsProcessing(true);
       }
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [velas, activeSignal, pendingSignal, isPaused, analyzePattern]);
+  }, [velas, activeSignal, pendingSignal, analyzePattern]);
 
   const signal = activeSignal || { depoisDe: null, tirarNo: null, tentativas: null };
   const showProcessing = isProcessing || (!activeSignal && !pendingSignal);
@@ -227,7 +196,7 @@ const Index = () => {
           tirarNo={signal.tirarNo}
           tentativas={signal.tentativas}
           isWaiting={false}
-          isProcessing={showProcessing || isPaused}
+          isProcessing={showProcessing}
         />
         <SignalHistory history={history} />
         <DepositCard />

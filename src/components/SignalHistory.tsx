@@ -11,10 +11,10 @@ interface SignalHistoryProps {
   history: HistoryItem[];
 }
 
-const getVelaBgColor = (value: number): string => {
-  if (value >= 10) return 'bg-vela-pink';
-  if (value >= 2) return 'bg-vela-purple';
-  return 'bg-vela-blue';
+const getVelaColor = (value: number): string => {
+  if (value >= 10) return 'text-vela-pink';
+  if (value >= 2) return 'text-vela-purple';
+  return 'text-vela-blue';
 };
 
 const SignalHistory = ({ history }: SignalHistoryProps) => {
@@ -35,24 +35,22 @@ const SignalHistory = ({ history }: SignalHistoryProps) => {
   }, [history.length, history[0]?.id]);
 
   return (
-    <div className="bg-[#1a1a2e] rounded-xl border border-[#0d0d15] p-4">
+    <div className="bg-card rounded-xl border border-border/50 p-4">
       <h3 className="text-white font-bold mb-3">Histórico</h3>
       
-      {/* Bubble display */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      {/* Bubble display - same style as VelasAnalyzer */}
+      <div className="flex flex-wrap gap-2 mb-4">
         {history.length > 0 ? (
           history.slice(0, 30).map((item) => (
-            <div
+            <span
               key={item.id}
-              className={`w-7 h-7 rounded-full flex items-center justify-center ${getVelaBgColor(item.multiplier)} ${
+              className={`px-3 py-1.5 rounded-md bg-[#1a1a2e] border border-[#0d0d15] text-xs font-extrabold transition-all ${getVelaColor(item.multiplier)} ${
                 item.id === newItemId ? 'animate-[pulse_0.5s_ease-in-out_2]' : ''
               }`}
               title={`Alvo: ${item.predictedTarget.toFixed(2)}x | Resultado: ${item.multiplier.toFixed(2)}x`}
             >
-              <span className="text-[10px] font-bold text-white">
-                {item.multiplier.toFixed(1)}
-              </span>
-            </div>
+              {item.multiplier.toFixed(2)}x
+            </span>
           ))
         ) : (
           <span className="text-muted-foreground text-sm">Sem histórico...</span>
@@ -60,7 +58,7 @@ const SignalHistory = ({ history }: SignalHistoryProps) => {
       </div>
       
       {history.length > 0 && (
-        <div className="flex gap-4 text-sm border-t border-[#0d0d15] pt-3">
+        <div className="flex gap-4 text-sm border-t border-border/30 pt-3">
           <span className="text-primary font-semibold">
             Greens: {greens}
           </span>

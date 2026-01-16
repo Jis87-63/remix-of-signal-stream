@@ -58,5 +58,35 @@ export const useNotificationSound = () => {
     }
   }, [getAudioContext]);
 
-  return { playGreenSound, playLostSound };
+  // Special sound for high velas (10x+) - celebratory multi-tone
+  const playHighVelaSound = useCallback(() => {
+    try {
+      const ctx = getAudioContext();
+      
+      // Play 3 ascending tones for celebration
+      const frequencies = [523, 659, 784, 1047]; // C5, E5, G5, C6
+      
+      frequencies.forEach((freq, i) => {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        const startTime = ctx.currentTime + i * 0.12;
+        oscillator.frequency.setValueAtTime(freq, startTime);
+        
+        gainNode.gain.setValueAtTime(0.4, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+        
+        oscillator.type = 'sine';
+        oscillator.start(startTime);
+        oscillator.stop(startTime + 0.3);
+      });
+    } catch (e) {
+      console.log('Audio not supported');
+    }
+  }, [getAudioContext]);
+
+  return { playGreenSound, playLostSound, playHighVelaSound };
 };
