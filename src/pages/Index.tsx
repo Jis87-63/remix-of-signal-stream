@@ -4,6 +4,7 @@ import VelasAnalyzer from "@/components/VelasAnalyzer";
 import SignalCard from "@/components/SignalCard";
 import SignalHistory from "@/components/SignalHistory";
 import DepositCard from "@/components/DepositCard";
+import WhatsAppDialog from "@/components/WhatsAppDialog";
 import { useVelas } from "@/hooks/useVelas";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -25,7 +26,8 @@ interface PendingSignal {
 const Index = () => {
   const { velas, isLoading } = useVelas();
   const { playGreenSound, playLostSound } = useNotificationSound();
-  const [onlineCount, setOnlineCount] = useState(2);
+  const [onlineCount, setOnlineCount] = useState(187);
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(true);
   const [activeSignal, setActiveSignal] = useState<{
@@ -41,16 +43,34 @@ const Index = () => {
   const historyIdRef = useRef(0);
   const consecutiveLostsRef = useRef(0);
 
-  // Simulate random online count changes
+  // Simulate random online count changes (100-200 range)
   useEffect(() => {
     const interval = setInterval(() => {
       setOnlineCount(prev => {
-        const change = Math.random() > 0.5 ? 1 : -1;
+        const change = Math.random() > 0.5 ? Math.floor(Math.random() * 5) + 1 : -(Math.floor(Math.random() * 5) + 1);
         const newCount = prev + change;
-        return Math.max(1, Math.min(10, newCount));
+        return Math.max(100, Math.min(250, newCount));
       });
-    }, 10000);
+    }, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Show WhatsApp dialog every 3 minutes
+  useEffect(() => {
+    // Show initially after 10 seconds
+    const initialTimer = setTimeout(() => {
+      setShowWhatsAppDialog(true);
+    }, 10000);
+
+    // Then show every 3 minutes
+    const interval = setInterval(() => {
+      setShowWhatsAppDialog(true);
+    }, 3 * 60 * 1000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
   }, []);
 
   // Analyze last 4 velas and generate prediction
@@ -219,6 +239,11 @@ const Index = () => {
         <SignalHistory history={history} />
         <DepositCard />
       </main>
+
+      <WhatsAppDialog 
+        isOpen={showWhatsAppDialog} 
+        onClose={() => setShowWhatsAppDialog(false)} 
+      />
     </div>
   );
 };
