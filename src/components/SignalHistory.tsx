@@ -15,6 +15,12 @@ const getVelaColor = (value: number): string => {
   return 'text-vela-blue';
 };
 
+const getVelaBgColor = (value: number): string => {
+  if (value >= 10) return 'bg-vela-pink';
+  if (value >= 2) return 'bg-vela-purple';
+  return 'bg-vela-blue';
+};
+
 const SignalHistory = ({ history }: SignalHistoryProps) => {
   const greens = history.filter(h => h.result === 'green').length;
   const losts = history.filter(h => h.result === 'lost').length;
@@ -30,14 +36,10 @@ const SignalHistory = ({ history }: SignalHistoryProps) => {
           history.slice(0, 30).map((item) => (
             <div
               key={item.id}
-              className={`w-7 h-7 rounded-full flex items-center justify-center bg-[#0d0d15] border ${
-                item.result === 'green' 
-                  ? 'border-primary' 
-                  : 'border-destructive'
-              }`}
+              className={`w-7 h-7 rounded-full flex items-center justify-center ${getVelaBgColor(item.multiplier)}`}
               title={`Alvo: ${item.predictedTarget.toFixed(2)}x | Resultado: ${item.multiplier.toFixed(2)}x`}
             >
-              <span className={`text-[10px] font-bold ${getVelaColor(item.multiplier)}`}>
+              <span className="text-[10px] font-bold text-white">
                 {item.multiplier.toFixed(1)}
               </span>
             </div>

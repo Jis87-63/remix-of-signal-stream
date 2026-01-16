@@ -12,7 +12,7 @@ const Header = ({ onlineCount }: HeaderProps) => {
           <Plane className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h1 className="font-bold text-foreground">Sistema Cashout</h1>
+          <h1 className="font-bold text-foreground">ROBÔ DO AVIATOR</h1>
           <p className="text-xs text-muted-foreground">Aguarde entrada</p>
         </div>
       </div>
