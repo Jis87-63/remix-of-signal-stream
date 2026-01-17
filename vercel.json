@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/signals",
+      "destination": "https://pzsbixyxpzinnpegpnfg.supabase.co/functions/v1/velas-proxy"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -9,19 +13,19 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
       ]
     }
+  ]
+}
   ]
 }

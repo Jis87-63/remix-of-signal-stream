@@ -9,7 +9,6 @@ const Header = ({ onlineCount }: HeaderProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Trigger animation after component mounts
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
@@ -31,7 +30,9 @@ const Header = ({ onlineCount }: HeaderProps) => {
           />
         </div>
         <div>
-          <h1 className="font-bold text-sm text-foreground">ROBÔ DO AVIATOR</h1>
+          <h1 className="font-bold text-sm text-foreground shine-text">
+            Robô do Aviator
+          </h1>
           <p className="text-[10px] text-muted-foreground">Aguarde entrada</p>
         </div>
       </div>

@@ -11,6 +11,18 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      '/api/signals': {
+        target: 'https://pzsbixyxpzinnpegpnfg.supabase.co/functions/v1/velas-proxy',
+        changeOrigin: true,
+        rewrite: () => '',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('origin', 'https://roboaviator.app');
+          });
+        },
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
