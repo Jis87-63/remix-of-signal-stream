@@ -1,1 +1,4 @@
 project_id = "pzsbixyxpzinnpegpnfg"
+
+[functions.velas-proxy]
+verify_jwt = false
