@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VelasData {
   velas: number[];
@@ -7,33 +8,9 @@ interface VelasData {
   error: string | null;
 }
 
-// Obfuscated configuration
-const _0x4f2a = ['aHR0cHM6Ly9hcHAuc3NjYXNob3V0Lm9ubGluZS9hcGkvdmVsYXM='];
-const _getEndpoint = (): string => {
-  try {
-    return atob(_0x4f2a[0]);
-  } catch {
-    return '';
-  }
-};
-
-// Anti-devtools detection
-const _detectDevTools = (): boolean => {
-  const threshold = 160;
-  const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-  const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-  return widthThreshold || heightThreshold;
-};
-
-// Session validation
-const _validateSession = (): string => {
-  const sessionKey = '_vs_' + Date.now().toString(36);
-  const existing = document.cookie.split(';').find(c => c.trim().startsWith('_vk='));
-  if (!existing) {
-    const expiry = new Date(Date.now() + 86400000).toUTCString();
-    document.cookie = `_vk=${sessionKey}; expires=${expiry}; path=/; SameSite=Strict; Secure`;
-  }
-  return sessionKey;
+// Generate unique request ID
+const _genId = (): string => {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
 export const useVelas = () => {
@@ -45,35 +22,37 @@ export const useVelas = () => {
   });
 
   const fetchVelas = useCallback(async () => {
-    // Validate session
-    _validateSession();
-    
-    // Check for devtools (optional warning)
-    if (_detectDevTools()) {
-      console.clear();
-    }
-
     try {
       setData(prev => ({ ...prev, isLoading: true }));
       
-      const endpoint = _getEndpoint();
-      if (!endpoint) {
-        throw new Error('Configuration error');
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        credentials: 'omit',
+      const requestId = _genId();
+      
+      // Call secure edge function instead of direct API
+      const { data: responseData, error } = await supabase.functions.invoke('velas-proxy', {
         headers: {
-          'Accept': 'application/json',
+          'x-request-id': requestId,
         },
       });
-      
-      const json = await response.json();
 
-      if (json.ok && json.valores) {
+      if (error) {
+        throw new Error(error.message || 'Erro de conexão');
+      }
+
+      if (responseData?.ok && responseData?.valores) {
+        // Validate response signature
+        const meta = responseData._meta;
+        if (!meta || !meta.sig || !meta.ts) {
+          throw new Error('Invalid response signature');
+        }
+        
+        // Check if response is not too old (5 minutes max)
+        const age = Date.now() - meta.ts;
+        if (age > 300000) {
+          throw new Error('Stale response');
+        }
+        
         setData({
-          velas: json.valores,
+          velas: responseData.valores,
           isLoading: false,
           isConnected: true,
           error: null,
@@ -83,15 +62,15 @@ export const useVelas = () => {
           ...prev,
           isLoading: false,
           isConnected: false,
-          error: 'Resposta inválida',
+          error: responseData?.error || 'Resposta inválida',
         }));
       }
-    } catch {
+    } catch (err) {
       setData(prev => ({
         ...prev,
         isLoading: false,
         isConnected: false,
-        error: 'Erro de conexão',
+        error: err instanceof Error ? err.message : 'Erro de conexão',
       }));
     }
   }, []);
