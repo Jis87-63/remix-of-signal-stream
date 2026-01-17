@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface VelasData {
   velas: number[];
@@ -8,9 +7,17 @@ interface VelasData {
   error: string | null;
 }
 
-// Generate unique request ID
-const _genId = (): string => {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`;
+// Generate unique request ID (obfuscated)
+const _g = (): string => {
+  const t = Date.now().toString(36);
+  const r = Math.random().toString(36).substring(2, 11);
+  return `${t}-${r}`;
+};
+
+// Encoded endpoint parts (obfuscated)
+const _e = () => {
+  const p = ['/api', '/signals'];
+  return p.join('');
 };
 
 export const useVelas = () => {
@@ -25,27 +32,33 @@ export const useVelas = () => {
     try {
       setData(prev => ({ ...prev, isLoading: true }));
       
-      const requestId = _genId();
+      const rid = _g();
+      const endpoint = _e();
       
-      // Call secure edge function instead of direct API
-      const { data: responseData, error } = await supabase.functions.invoke('velas-proxy', {
+      // Use local proxy - hides real backend URL
+      const response = await fetch(endpoint, {
+        method: 'POST',
         headers: {
-          'x-request-id': requestId,
+          'Content-Type': 'application/json',
+          'X-Request-ID': rid,
         },
+        credentials: 'same-origin',
       });
 
-      if (error) {
-        throw new Error(error.message || 'Erro de conexão');
+      if (!response.ok) {
+        throw new Error('Erro de conexão');
       }
 
+      const responseData = await response.json();
+
       if (responseData?.ok && responseData?.valores) {
-        // Validate response signature
+        // Validate response
         const meta = responseData._meta;
         if (!meta || !meta.sig || !meta.ts) {
-          throw new Error('Invalid response signature');
+          throw new Error('Invalid response');
         }
         
-        // Check if response is not too old (5 minutes max)
+        // Check freshness (5 min max)
         const age = Date.now() - meta.ts;
         if (age > 300000) {
           throw new Error('Stale response');
