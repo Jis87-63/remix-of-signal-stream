@@ -3,9 +3,16 @@ import { X } from "lucide-react";
 interface WhatsAppDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  text?: string;
+  link?: string;
 }
 
-const WhatsAppDialog = ({ isOpen, onClose }: WhatsAppDialogProps) => {
+const WhatsAppDialog = ({ 
+  isOpen, 
+  onClose, 
+  text = "Entre no nosso grupo VIP!", 
+  link = "https://chat.whatsapp.com/example" 
+}: WhatsAppDialogProps) => {
   if (!isOpen) return null;
 
   return (
@@ -23,7 +30,7 @@ const WhatsAppDialog = ({ isOpen, onClose }: WhatsAppDialogProps) => {
         </h2>
         
         <p className="text-foreground text-sm leading-relaxed mb-4">
-          Entre agora no grupo de WhatsApp e tenha acesso a <span className="text-primary font-semibold">dicas exclusivas</span>, outros bots <span className="text-primary font-semibold">100% assertivos</span> e suporte 24/24 para tirar todas as suas dúvidas.
+          {text}
         </p>
         
         <p className="text-muted-foreground text-xs mb-6">
@@ -31,7 +38,7 @@ const WhatsAppDialog = ({ isOpen, onClose }: WhatsAppDialogProps) => {
         </p>
         
         <a
-          href="https://chat.whatsapp.com/LfPy4mku4rT74B3PRfGhj3"
+          href={link}
           target="_blank"
           rel="noopener noreferrer"
           className="block w-full py-4 bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-lg rounded-xl transition-colors uppercase tracking-wider"

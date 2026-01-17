@@ -5,8 +5,11 @@ import SignalCard from "@/components/SignalCard";
 import SignalHistory from "@/components/SignalHistory";
 import DepositCard from "@/components/DepositCard";
 import WhatsAppDialog from "@/components/WhatsAppDialog";
+import MaintenanceDialog from "@/components/MaintenanceDialog";
 import { useVelas } from "@/hooks/useVelas";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { useVoiceNarration } from "@/hooks/useVoiceNarration";
 
 interface HistoryItem {
   id: number;
@@ -26,6 +29,8 @@ interface PendingSignal {
 const Index = () => {
   const { velas, isLoading } = useVelas();
   const { playGreenSound, playLostSound, playHighVelaSound } = useNotificationSound();
+  const { settings, isLoading: settingsLoading } = useAdminSettings();
+  const { speakMultiplier } = useVoiceNarration(settings.voice_enabled);
   const [onlineCount, setOnlineCount] = useState(187);
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -176,14 +181,22 @@ const Index = () => {
           attemptCount: newSignal.tentativas,
         });
         setIsProcessing(false);
+        
+        // Speak the multiplier when signal is generated
+        speakMultiplier(newSignal.tirarNo);
       }
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [velas, activeSignal, pendingSignal, analyzePattern]);
+  }, [velas, activeSignal, pendingSignal, analyzePattern, speakMultiplier]);
 
   const signal = activeSignal || { depoisDe: null, tirarNo: null, tentativas: null };
   const showProcessing = isProcessing || (!activeSignal && !pendingSignal);
+
+  // Show maintenance dialog if enabled
+  if (settings.maintenance_mode && !settingsLoading) {
+    return <MaintenanceDialog message={settings.maintenance_message} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -204,7 +217,9 @@ const Index = () => {
 
       <WhatsAppDialog 
         isOpen={showWhatsAppDialog} 
-        onClose={() => setShowWhatsAppDialog(false)} 
+        onClose={() => setShowWhatsAppDialog(false)}
+        text={settings.group_dialog_text}
+        link={settings.group_dialog_link}
       />
     </div>
   );
