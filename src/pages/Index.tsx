@@ -10,6 +10,7 @@ import { useVelas } from "@/hooks/useVelas";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 import { useVoiceNarration } from "@/hooks/useVoiceNarration";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface HistoryItem {
   id: number;
@@ -31,6 +32,7 @@ const Index = () => {
   const { playGreenSound, playLostSound, playHighVelaSound } = useNotificationSound();
   const { settings, isLoading: settingsLoading } = useAdminSettings();
   const { speakMultiplier } = useVoiceNarration(settings.voice_enabled);
+  const { requestPermission, sendSignalNotification, permission } = usePushNotifications();
   const [onlineCount, setOnlineCount] = useState(187);
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);

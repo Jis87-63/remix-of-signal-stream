@@ -58,9 +58,9 @@ Deno.serve(async (req) => {
     // Get request ID for tracking
     const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
     
-    console.log(`[${requestId}] Fetching velas data...`);
+    console.log(`[${requestId}] Fetching velas data from protected backend...`);
 
-    // Fetch from the real API (server-side only)
+    // Fetch from the real API (server-side only - URL hidden from client)
     const response = await fetch(API_ENDPOINT, {
       method: 'GET',
       headers: {
